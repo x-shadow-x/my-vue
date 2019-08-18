@@ -1,3 +1,4 @@
-import { h } from './h.js';
+import { Fragment, Portal, h } from './h.js';
+import { render } from './render.js';
 
-export { h };
+export { Fragment, Portal, h, render };

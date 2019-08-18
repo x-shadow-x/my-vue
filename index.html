@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <div id="portal-box"></div>
+    <script src="./dist/umd-dev.js"></script>
+    <script>
+        /* Vue.render(Vue.h('div', {
+            style: {
+                background: 'yellowgreen',
+                width: '100px',
+                height: '100px'
+            },
+            onclick: (e) => {
+                console.info('点击了');
+            }
+        }, Vue.h(Vue.Fragment, null, null)), document.getElementById('app')); */
+
+        /* Vue.render(Vue.h('svg', {
+            style: {
+                border: '1px solid lightseagreen',
+                width: '100px',
+                height: '100px'
+            }
+        }, Vue.h(Vue.Fragment, null, [
+            Vue.h('circle', {
+                cx: 30,
+                cy: 30,
+                r: 30,
+            }, null)
+        ])), document.getElementById('app')); */
+
+        // Vue.render(Vue.h('div', {
+        //     style: {
+        //         background: 'yellowgreen',
+        //         width: '100px',
+        //         height: '100px'
+        //     },
+        //     onclick: (e) => {
+        //         console.info('点击了');
+        //     }
+        // }, [
+        //     Vue.h('svg', {
+        //         style: {
+        //             border: '1px solid lightseagreen',
+        //             width: '100px',
+        //             height: '100px'
+        //         },
+        //         id: 'svg'
+        //     }),
+        //     Vue.h(Vue.Portal, {
+        //         target: '#svg'
+        //     }, [
+        //         Vue.h('circle', {
+        //             cx: 30,
+        //             cy: 30,
+        //             r: 30,
+        //         }, null)
+        //     ])
+        // ]), document.getElementById('app'));
+
+        const elementVNode = Vue.h(
+            'div',
+            {
+                style: {
+                    height: '100px',
+                    width: '100px',
+                    background: 'red'
+                }
+            },
+            Vue.h(Vue.Portal, { target: '#portal-box' }, [
+                Vue.h('span', null, '我是标题1......'),
+                Vue.h('span', null, '我是标题2......')
+            ])
+        )
+
+        Vue.render(elementVNode, document.getElementById('app'))
+    </script>
+</body>
+
+</html>

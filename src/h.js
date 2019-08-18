@@ -9,11 +9,12 @@ function h(tag, data = null, children = null) {
     let flags = null;
     let childFlags = null;
     if(typeof tag === 'string') {
-        flags = VNodeFlags.ELEMENT_HTML;
+        flags = tag === 'svg' ? VNodeFlags.ELEMENT_SVG : VNodeFlags.ELEMENT_HTML;
     } else if(tag === Fragment) {
         flags = VNodeFlags.FRAGMENT;
     } else if(tag === Portal) {
         flags = VNodeFlags.PORTAL;
+        tag = data && data.target;
     } else {
         flags = tag.prototype && tag.prototype.render
             ? VNodeFlags.COMPONENT_STATEFUL_NORMAL
@@ -46,7 +47,7 @@ function h(tag, data = null, children = null) {
         children,
         childFlags,
         el: null
-    }
+    };
 }
 
 /**
@@ -76,4 +77,4 @@ function createTextVNode(text) {
     }
 }
 
-export { Fragment, Portal, h };
+export { Fragment, Portal, h, createTextVNode };

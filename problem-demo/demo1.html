@@ -1,0 +1,44 @@
+<!-- 实验某些dom属性，只要出现就一直生效，setAttribute设置false或者其他值都是无效的 -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div>
+        <span>通过el.checked设置属性：</span>
+        <input type="checkbox" id="input1">
+        <button id="btn1">按钮</button>
+    </div>
+    <div>
+        <span>通过setAttribute设置属性：</span>
+        <input type="checkbox" id="input2">
+        <button id="btn2">按钮</button>
+    </div>
+    <script>
+        const $input1 = document.getElementById('input1');
+        const $input2 = document.getElementById('input2');
+        document.getElementById('btn1').addEventListener('click', () => {
+            if ($input1.checked) {
+                $input1.checked = false;
+            } else {
+                $input1.checked = true;
+            }
+        });
+        document.getElementById('btn2').addEventListener('click', () => {
+            if ($input2.checked) {
+                $input2.setAttribute('checked', false);
+                console.info('通过setAttribute设置checked为false,但是选项框依然被选中');
+            } else {
+                $input2.setAttribute('checked', true);
+            }
+        });
+    </script>
+</body>
+
+</html>
