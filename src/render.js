@@ -178,4 +178,50 @@ function mountFunctionalComponent(vnode, container, isSvg) {
     vnode.el = _vnode.el;
 }
 
+function patch(prevVNode, nextVNode, container) {
+    const prevFlags = prevVNode.flags;
+    const nextFlags = nextVNode.flags;
+
+    if (prevFlags !== nextFlags) {
+        replaceVNode(prevVNode, nextVNode, container);
+    } else if (nextFlags & VNodeFlags.ELEMENT) {
+        patchElement(prevVNode, nextVNode, container);
+    }
+}
+
+function replaceVNode(prevVNode, nextVNode, container) {
+    container.removeChild(prevVNode.el);
+    mount(nextVNode, container);
+}
+
+function patchElement(prevVNode, nextVNode, container) {
+    if (prevVNode.tag !== nextVNode.tag) {
+        replaceVNode(prevVNode, nextVNode, container);
+        return;
+    }
+
+    const prevData = prevVNode.data;
+    const nextData = nextVNode.data;
+    const el = prevVNode.el;
+    if (nextData) {
+        for (let key in nextData) {
+            prevValue = prevData[key];
+            nextValue = nextData[key];
+            switch (key) {
+                case 'style':
+                    el.style = {};
+                    for(let styleKey in nextValue) {
+                        el.style[styleKey] = nextValue[styleKey];
+                    }
+                    break;
+                case 'class':
+                    el.className = nextValue;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 export { render };
