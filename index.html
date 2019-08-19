@@ -67,22 +67,54 @@
         //     ])
         // ]), document.getElementById('app'));
 
-        const elementVNode = Vue.h(
-            'div',
-            {
-                style: {
-                    height: '100px',
-                    width: '100px',
-                    background: 'red'
-                }
-            },
-            Vue.h(Vue.Portal, { target: '#portal-box' }, [
-                Vue.h('span', null, '我是标题1......'),
-                Vue.h('span', null, '我是标题2......')
-            ])
-        )
+        // const elementVNode = Vue.h(
+        //     'div',
+        //     {
+        //         style: {
+        //             height: '100px',
+        //             width: '100px',
+        //             background: 'red'
+        //         }
+        //     },
+        //     Vue.h(Vue.Portal, { target: '#portal-box' }, [
+        //         Vue.h('span', null, '我是标题1......'),
+        //         Vue.h('span', null, '我是标题2......')
+        //     ])
+        // )
 
-        Vue.render(elementVNode, document.getElementById('app'))
+        // Vue.render(elementVNode, document.getElementById('app'));
+
+        // class MyComponent extends Vue.Component {
+        //     render() {
+        //         return Vue.h(
+        //             'div', {
+        //                 style: {
+        //                     background: 'green'
+        //                 }
+        //             }, [
+        //                 Vue.h('span', null, '我是组件的标题1......'),
+        //                 Vue.h('span', null, '我是组件的标题2......')
+        //             ]
+        //         )
+        //     }
+        // }
+        // const compVnode = Vue.h(MyComponent);
+        // Vue.render(compVnode, document.getElementById('app'));
+
+        function FunctionComponent() {
+            return Vue.h(
+                'div', {
+                    style: {
+                        background: 'green'
+                    }
+                }, [
+                    Vue.h('span', null, '我是functional组件的标题1......'),
+                    Vue.h('span', null, '我是functional组件的标题2......')
+                ]
+            );
+        }
+        const compVnode = Vue.h(FunctionComponent);
+        Vue.render(compVnode, document.getElementById('app'));
     </script>
 </body>
 

@@ -38,11 +38,13 @@ function mount(vnode, container, isSvg) {
     const { flags } = vnode;
     if (flags & VNodeFlags.ELEMENT) {
         mountElement(vnode, container, isSvg);
+    } else if (flags & VNodeFlags.COMPONENT) {
+        mountComponent(vnode, container, isSvg);
     } else if (flags & VNodeFlags.TEXT) {
         mountText(vnode, container);
     } else if (flags & VNodeFlags.FRAGMENT) {
         mountFragment(vnode, container, isSvg);
-    } else if(flags & VNodeFlags.PORTAL) {
+    } else if (flags & VNodeFlags.PORTAL) {
         mountPortal(vnode, container);
     }
 }
@@ -135,16 +137,15 @@ function mountPortal(vnode, container) {
     const _container = typeOf(vnode.tag, 'string')
         ? document.querySelector(vnode.tag)
         : vnode.tag;
-    console.info(document.querySelector(vnode.tag), vnode.tag);
-    const _isSvg = +_container.getAttribute('svg');
+    // const _isSvg = +_container.getAttribute('svg');
     const { children, childFlags } = vnode;
-    if(childFlags & ChildFlags.SINGLE_VNODE) {
+    if (childFlags & ChildFlags.SINGLE_VNODE) {
         if (Array.isArray(children)) {
             mount(children[0], _container, _isSvg);
         } else {
             mount(children, _container, _isSvg);
         }
-    } else if(childFlags & ChildFlags.MULTIPLE_VNODES) {
+    } else if (childFlags & ChildFlags.MULTIPLE_VNODES) {
         for (let i = 0, len = children.length; i < len; i++) {
             mount(children[i], _container, _isSvg);
         }
@@ -154,6 +155,27 @@ function mountPortal(vnode, container) {
     const textNode = createTextVNode('');
     mountText(textNode, container);
     vnode.el = textNode.el;
+}
+
+function mountComponent(vnode, container, isSvg) {
+    if (vnode.flags & VNodeFlags.COMPONENT_STATEFUL) {
+        mountStatefulComponent(vnode, container, isSvg);
+    } else {
+        mountFunctionalComponent(vnode, container, isSvg);
+    }
+}
+
+function mountStatefulComponent(vnode, container, isSvg) {
+    const instance = new vnode.tag();
+    const _vnode = instance.render();
+    mount(_vnode, container, isSvg);
+    vnode.el = _vnode.el;
+}
+
+function mountFunctionalComponent(vnode, container, isSvg) {
+    const _vnode = vnode.tag();
+    mount(_vnode, container, isSvg);
+    vnode.el = _vnode.el;
 }
 
 export { render };
