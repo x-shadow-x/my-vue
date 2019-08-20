@@ -218,6 +218,18 @@ function patchElement(prevVNode, nextVNode, container) {
                     el.className = nextValue;
                     break;
                 default:
+                    if(key.indexOf('on') === 0) {
+                        if(prevValue) {
+                            el.removeEventListener(key.slice(2), prevValue);
+                        }
+                        if(nextValue) {
+                            el.addEventListener(key.slice(2), nextValue);
+                        }
+                    } else if(DOM_PROPS_RE.test(key)) {
+                        el[key] = nextValue;
+                    } else {
+                        el.setAttribute(key, nextValue);
+                    }
                     break;
             }
         }
