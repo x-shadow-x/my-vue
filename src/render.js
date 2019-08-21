@@ -19,7 +19,7 @@ function render(vnode, container) {
         }
     } else {
         if (vnode) {
-            patch(vnode, container);
+            patch(prevVNode, vnode, container);
             container.vnode = vnode;
         } else {
             container.removeChild(prevVNode.el);
@@ -60,34 +60,8 @@ function mountElement(vnode, container, isSvg) {
     el.setAttribute('svg', _isSvg);
     if (data) {
         for (let key in data) {
-            switch (key) {
-                case 'style':
-                    for (let styleKey in data[key]) {
-                        // data[key] 对象格式的样式数据由外部 h 函数生成VNode的时候保证~做好转换逻辑
-                        el.style[styleKey] = data[key][styleKey];
-                    }
-                    break;
-                case 'class':
-                    // data[key] 'class1 class2 ... classn'格式的字符串由外部 h 函数生成VNode的时候保证~做好转换逻辑
-                    el.className = data[key];
-                    break;
-                default:
-                    if (key.indexOf('on') == 0) {
-                        const event = key.slice(2);
-                        if (event) {
-                            el.addEventListener(event, data[key]);
-                        }
-                    } else {
-                        // 区分处理像 value|checked|selected|muted等样式~
-                        // 因为只要出现了就会生效，无论设置的值是什么（problem-demo/demo1.html）
-                        if (DOM_PROPS_RE.test(key)) {
-                            el[key] = data[key];
-                        } else {
-                            el.setAttribute(key, data[key]);
-                        }
-                    }
-                    break;
-            }
+            const nextValue = data[key];
+            patchData(null, nextValue, key, el);
         }
     }
 
@@ -141,13 +115,13 @@ function mountPortal(vnode, container) {
     const { children, childFlags } = vnode;
     if (childFlags & ChildFlags.SINGLE_VNODE) {
         if (Array.isArray(children)) {
-            mount(children[0], _container, _isSvg);
+            mount(children[0], _container);
         } else {
-            mount(children, _container, _isSvg);
+            mount(children, _container);
         }
     } else if (childFlags & ChildFlags.MULTIPLE_VNODES) {
         for (let i = 0, len = children.length; i < len; i++) {
-            mount(children[i], _container, _isSvg);
+            mount(children[i], _container);
         }
     }
     // Portal的子元素被挂载到了指定的_container中
@@ -207,33 +181,52 @@ function patchElement(prevVNode, nextVNode, container) {
         for (let key in nextData) {
             prevValue = prevData[key];
             nextValue = nextData[key];
-            switch (key) {
-                case 'style':
-                    el.style = {};
-                    for(let styleKey in nextValue) {
-                        el.style[styleKey] = nextValue[styleKey];
-                    }
-                    break;
-                case 'class':
-                    el.className = nextValue;
-                    break;
-                default:
-                    if(key.indexOf('on') === 0) {
-                        if(prevValue) {
-                            el.removeEventListener(key.slice(2), prevValue);
-                        }
-                        if(nextValue) {
-                            el.addEventListener(key.slice(2), nextValue);
-                        }
-                    } else if(DOM_PROPS_RE.test(key)) {
-                        el[key] = nextValue;
-                    } else {
-                        el.setAttribute(key, nextValue);
-                    }
-                    break;
+            patchData(prevValue, nextValue, key, el);
+        }
+    }
+    if (prevData) {
+        // 删除新VNode上没有而旧VNode上有的属性
+        for (let key in prevData) {
+            prevValue = prevData[key];
+            if (!nextData.hasOwnProperty(key)) {
+                patchData(prevValue, null, key, el);
             }
         }
     }
 }
 
+function patchData(prevValue, nextValue, key, el) {
+    switch (key) {
+        case 'style':
+            el.style = {};
+            for (let styleKey in nextValue) {
+                // 当key=style的时候 nextValue对象格式的样式数据由外部 h 函数生成VNode的时候保证
+                el.style[styleKey] = nextValue[styleKey];
+            }
+            break;
+        case 'class':
+            // 当key=class的时候 nextValue 'class1 class2 ... classn'格式的字符串由外部 h函数生成VNode的时候保证
+            el.className = nextValue;
+            break;
+        default:
+            if (key.indexOf('on') === 0) {
+                const event = key.slice(2);
+                if (event) {
+                    if (prevValue) {
+                        el.removeEventListener(key.slice(2), prevValue);
+                    }
+                    if (nextValue) {
+                        el.addEventListener(key.slice(2), nextValue);
+                    }
+                }
+            } else if (DOM_PROPS_RE.test(key)) {
+                // 区分处理像 value|checked|selected|muted等属性~
+                // 因为只要出现了就会生效，无论设置的值是什么（problem-demo/demo1.html）
+                el[key] = nextValue;
+            } else {
+                el.setAttribute(key, nextValue);
+            }
+            break;
+    }
+}
 export { render };

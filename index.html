@@ -13,7 +13,7 @@
     <div id="portal-box"></div>
     <script src="./dist/umd-dev.js"></script>
     <script>
-        /* Vue.render(Vue.h('div', {
+        Vue.render(Vue.h('div', {
             style: {
                 background: 'yellowgreen',
                 width: '100px',
@@ -22,21 +22,26 @@
             onclick: (e) => {
                 console.info('点击了');
             }
-        }, Vue.h(Vue.Fragment, null, null)), document.getElementById('app')); */
+        }, Vue.h(Vue.Fragment, null, null)), document.getElementById('app'));
 
-        /* Vue.render(Vue.h('svg', {
-            style: {
-                border: '1px solid lightseagreen',
-                width: '100px',
-                height: '100px'
-            }
-        }, Vue.h(Vue.Fragment, null, [
-            Vue.h('circle', {
-                cx: 30,
-                cy: 30,
-                r: 30,
-            }, null)
-        ])), document.getElementById('app')); */
+        setTimeout(() => {
+            Vue.render(Vue.h('svg', {
+                style: {
+                    border: '1px solid lightseagreen',
+                    width: '100px',
+                    height: '100px'
+                },
+                onmouseover: (e) => {
+                    console.info('鼠标');
+                }
+            }, Vue.h(Vue.Fragment, null, [
+                Vue.h('circle', {
+                    cx: 30,
+                    cy: 30,
+                    r: 30,
+                }, null)
+            ])), document.getElementById('app'));
+        }, 2000);
 
         // Vue.render(Vue.h('div', {
         //     style: {
@@ -101,20 +106,20 @@
         // const compVnode = Vue.h(MyComponent);
         // Vue.render(compVnode, document.getElementById('app'));
 
-        function FunctionComponent() {
-            return Vue.h(
-                'div', {
-                    style: {
-                        background: 'green'
-                    }
-                }, [
-                    Vue.h('span', null, '我是functional组件的标题1......'),
-                    Vue.h('span', null, '我是functional组件的标题2......')
-                ]
-            );
-        }
-        const compVnode = Vue.h(FunctionComponent);
-        Vue.render(compVnode, document.getElementById('app'));
+        // function FunctionComponent() {
+        //     return Vue.h(
+        //         'div', {
+        //             style: {
+        //                 background: 'green'
+        //             }
+        //         }, [
+        //             Vue.h('span', null, '我是functional组件的标题1......'),
+        //             Vue.h('span', null, '我是functional组件的标题2......')
+        //         ]
+        //     );
+        // }
+        // const compVnode = Vue.h(FunctionComponent);
+        // Vue.render(compVnode, document.getElementById('app'));
     </script>
 </body>
 
