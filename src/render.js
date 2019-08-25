@@ -155,11 +155,16 @@ function mountFunctionalComponent(vnode, container, isSvg) {
 function patch(prevVNode, nextVNode, container) {
     const prevFlags = prevVNode.flags;
     const nextFlags = nextVNode.flags;
-
     if (prevFlags !== nextFlags) {
         replaceVNode(prevVNode, nextVNode, container);
     } else if (nextFlags & VNodeFlags.ELEMENT) {
         patchElement(prevVNode, nextVNode, container);
+    } else if (nextFlags & VNodeFlags.TEXT) {
+        patchText(prevVNode, nextVNode);
+    } else if (nextFlags & VNodeFlags.FRAGMENT) {
+        patchFragment(prevVNode, nextVNode, container);
+    } else if (nextFlags & VNodeFlags.PORTAL) {
+        patchPortal(prevVNode, nextVNode, container);
     }
 }
 
@@ -177,21 +182,33 @@ function patchElement(prevVNode, nextVNode, container) {
     const prevData = prevVNode.data;
     const nextData = nextVNode.data;
     const el = prevVNode.el;
+    nextVNode.el = prevVNode.el;
     if (nextData) {
         for (let key in nextData) {
-            prevValue = prevData[key];
-            nextValue = nextData[key];
+            const prevValue = prevData[key];
+            const nextValue = nextData[key];
             patchData(prevValue, nextValue, key, el);
         }
     }
+
     if (prevData) {
         // 删除新VNode上没有而旧VNode上有的属性
         for (let key in prevData) {
-            prevValue = prevData[key];
+            const prevValue = prevData[key];
             if (!nextData.hasOwnProperty(key)) {
                 patchData(prevValue, null, key, el);
             }
         }
+    }
+
+    patchChildren(prevVNode, nextVNode, container);
+}
+
+function patchText(prevVNode, nextVNode) {
+    const el = prevVNode.el;
+    nextVNode.el = prevVNode.el;
+    if (prevVNode.children !== nextVNode.children) {
+        el.nodeValue = nextVNode.children;
     }
 }
 
@@ -229,4 +246,125 @@ function patchData(prevValue, nextValue, key, el) {
             break;
     }
 }
+
+function patchChildren(prevVNode, nextVNode, container) {
+    const _prevChildFlags = prevVNode.childFlags;
+    const _nextChildFlags = nextVNode.childFlags;
+    const _prevChildren = _prevChildFlags === ChildFlags.SINGLE_VNODE
+        ? typeOf(prevVNode.children, 'Array')
+            ? prevVNode.children[0]
+            : prevVNode.children
+        : prevVNode.children;
+    const _nextChildren = _nextChildFlags === ChildFlags.SINGLE_VNODE
+        ? typeOf(nextVNode.children, 'Array')
+            ? nextVNode.children[0]
+            : nextVNode.children
+        : nextVNode.children;
+
+    switch (_prevChildFlags) {
+        case ChildFlags.NO_CHILDREN:
+            switch (_nextChildFlags) {
+                case ChildFlags.NO_CHILDREN:
+                    break;
+                case ChildFlags.SINGLE_VNODE:
+                    mount(_nextChildren, container);
+                    break;
+                default:
+                    for (let i = 0, len = _nextChildren.length; i < len; i++) {
+                        const child = _nextChildren[i];
+                        mount(child, container);
+                    }
+                    break;
+            }
+            break;
+        case ChildFlags.SINGLE_VNODE:
+            switch (_nextChildFlags) {
+                case ChildFlags.NO_CHILDREN:
+                    // container.removeChild(_prevChildren.el);
+                    container.innerHTML = ''; // 当子节点是portal的时候会有问题
+                    break;
+                case ChildFlags.SINGLE_VNODE:
+                    console.info(_prevChildren, _nextChildren);
+                    patch(_prevChildren, _nextChildren, container);
+                    break;
+                default:
+                    container.innerHTML = ''; // 当子节点是portal的时候会有问题
+                    for (let i = 0, len = _nextChildren.length; i < len; i++) {
+                        const child = _nextChildren[i];
+                        mount(child, container);
+                    }
+                    break;
+            }
+            break;
+        default:
+            switch (_nextChildFlags) {
+                case ChildFlags.NO_CHILDREN:
+                    container.innerHTML = '';
+                    break;
+                case ChildFlags.SINGLE_VNODE:
+                    container.innerHTML = '';
+                    mount(_nextChildren, container);
+                    break;
+                default:
+                    container.innerHTML = '';
+                    for (let i = 0, len = _nextChildren.length; i < len; i++) {
+                        const child = _nextChildren[i];
+                        mount(child, container);
+                    }
+                    break;
+            }
+            break;
+    }
+}
+
+function patchFragment(prevVNode, nextVNode, container) {
+    patchChildren(prevVNode, nextVNode, container);
+
+    switch (nextVNode.childFlags) {
+        case ChildFlags.NO_CHILDREN:
+            nextVNode.el = prevVNode.el;
+            break;
+        case ChildFlags.SINGLE_VNODE:
+            nextVNode.el = typeOf(nextVNode.children, 'Array')
+                ? nextVNode.children[0].el
+                : nextVNode.children.el
+            break;
+        default:
+            nextVNode.el = nextVNode.children[0].el;
+            break;
+    }
+}
+
+function patchPortal(prevVNode, nextVNode) {
+    const _nextChildren = nextVNode.childFlags === ChildFlags.SINGLE_VNODE
+        ? typeOf(nextVNode.children, 'Array')
+            ? nextVNode.children[0]
+            : nextVNode.children
+        : nextVNode.children;
+    const _prevContainer = typeOf(prevVNode.tag, 'string')
+        ? document.querySelector(prevVNode.tag)
+        : prevVNode.tag;
+
+    patchChildren(prevVNode, nextVNode, _prevContainer);
+    nextVNode.el = prevVNode.el;
+    if (prevVNode.tag !== nextVNode.tag) {
+        const _nextContainer = typeOf(nextVNode.tag, 'string')
+            ? document.querySelector(nextVNode.tag)
+            : nextVNode.tag;
+        switch(nextVNode.childFlags) {
+            case ChildFlags.NO_CHILDREN:
+                break;
+            case ChildFlags.SINGLE_VNODE:
+                _nextContainer.appendChild(_nextChildren.el);
+                break;
+            default:
+                for(let i = 0, len = _nextChildren.length; i < len; i++) {
+                    _nextContainer.appendChild(_nextChildren[i].el);
+                }
+                break;
+        }
+
+    }
+}
+
 export { render };

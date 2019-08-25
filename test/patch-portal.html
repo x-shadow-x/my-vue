@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <div id="portal-box1">123</div>
+    <div id="portal-box2"></div>
+    <script src="../dist/umd-dev.js"></script>
+    <script>
+
+        // const prevVNode = Vue.h(Vue.Portal, {
+        //     target: '#portal-box1'
+        // }, [
+        //     Vue.h('p', null, '旧的 portal')
+        // ]);
+        // const nextVNode = Vue.h(Vue.Portal, {
+        //     target: '#portal-box1'
+        // }, [
+        //     Vue.h('p', null, '新的 portal')
+        // ]);
+
+        // Vue.render(prevVNode, document.getElementById('app'));
+        // setTimeout(() => {
+        //     Vue.render(nextVNode, document.getElementById('app'));
+        // }, 2000);
+
+        const prevVNode = Vue.h(Vue.Portal, {
+            target: '#portal-box1'
+        }, [
+            Vue.h('p', null, '旧的 portal1'),
+            Vue.h('p', null, '旧的 portal2')
+        ]);
+        const nextVNode = Vue.h(Vue.Portal, {
+            target: '#portal-box1'
+        }, [
+            Vue.h('p', null, '新的 portal')
+        ]);
+
+        Vue.render(prevVNode, document.getElementById('app'));
+        setTimeout(() => {
+            Vue.render(nextVNode, document.getElementById('app'));
+        }, 2000);
+    </script>
+</body>
+
+</html>

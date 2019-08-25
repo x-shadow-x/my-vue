@@ -13,35 +13,35 @@
     <div id="portal-box"></div>
     <script src="./dist/umd-dev.js"></script>
     <script>
-        Vue.render(Vue.h('div', {
-            style: {
-                background: 'yellowgreen',
-                width: '100px',
-                height: '100px'
-            },
-            onclick: (e) => {
-                console.info('点击了');
-            }
-        }, Vue.h(Vue.Fragment, null, null)), document.getElementById('app'));
+        // Vue.render(Vue.h('div', {
+        //     style: {
+        //         background: 'yellowgreen',
+        //         width: '100px',
+        //         height: '100px'
+        //     },
+        //     onclick: (e) => {
+        //         console.info('点击了');
+        //     }
+        // }, Vue.h(Vue.Fragment, null, null)), document.getElementById('app'));
 
-        setTimeout(() => {
-            Vue.render(Vue.h('svg', {
-                style: {
-                    border: '1px solid lightseagreen',
-                    width: '100px',
-                    height: '100px'
-                },
-                onmouseover: (e) => {
-                    console.info('鼠标');
-                }
-            }, Vue.h(Vue.Fragment, null, [
-                Vue.h('circle', {
-                    cx: 30,
-                    cy: 30,
-                    r: 30,
-                }, null)
-            ])), document.getElementById('app'));
-        }, 2000);
+        // setTimeout(() => {
+        //     Vue.render(Vue.h('svg', {
+        //         style: {
+        //             border: '1px solid lightseagreen',
+        //             width: '100px',
+        //             height: '100px'
+        //         },
+        //         onmouseover: (e) => {
+        //             console.info('鼠标');
+        //         }
+        //     }, Vue.h(Vue.Fragment, null, [
+        //         Vue.h('circle', {
+        //             cx: 30,
+        //             cy: 30,
+        //             r: 30,
+        //         }, null)
+        //     ])), document.getElementById('app'));
+        // }, 2000);
 
         // Vue.render(Vue.h('div', {
         //     style: {
@@ -120,6 +120,57 @@
         // }
         // const compVnode = Vue.h(FunctionComponent);
         // Vue.render(compVnode, document.getElementById('app'));
+
+        
+        // const prevVNode = Vue.h('div', null);
+        // const nextVNode = Vue.h('div', null,
+        //     [
+        //         Vue.h('p', null, 'this is p1'),
+        //         Vue.h('p', null, 'this is p2'),
+        //         Vue.h('p', null, 'this is p3')
+        //     ]
+        // )
+
+        // Vue.render(prevVNode, document.getElementById('app'));
+        // setTimeout(() => {
+        //     Vue.render(nextVNode, document.getElementById('app'));
+        // }, 2000);
+
+        // const prevVNode = Vue.h('div', null);
+        // const nextVNode = Vue.h('div', null,
+        //     [
+        //         Vue.h('p', null, 'this is p1'),
+        //         Vue.h('p', null, 'this is p2'),
+        //         Vue.h('p', null, 'this is p3')
+        //     ]
+        // )
+
+        // Vue.render(prevVNode, document.getElementById('app'));
+        // setTimeout(() => {
+        //     Vue.render(nextVNode, document.getElementById('app'));
+        // }, 2000);
+
+        // const prevVNode = Vue.h('div', null, '旧文本');
+        // const nextVNode = Vue.h('div', null, '新文本');
+
+        // Vue.render(prevVNode, document.getElementById('app'));
+        // setTimeout(() => {
+        //     Vue.render(nextVNode, document.getElementById('app'));
+        // }, 2000);
+
+        const prevVNode = Vue.h(Vue.Fragment, null, [
+            Vue.h('p', null, '旧片段子节点 1'),
+            Vue.h('p', null, '旧片段子节点 2')
+        ]);
+        const nextVNode = Vue.h(Vue.Fragment, null, [
+            Vue.h('p', null, '新片段子节点 1'),
+            Vue.h('p', null, '新片段子节点 2')
+        ]);
+
+        Vue.render(prevVNode, document.getElementById('app'));
+        setTimeout(() => {
+            Vue.render(nextVNode, document.getElementById('app'));
+        }, 2000);
     </script>
 </body>
 
