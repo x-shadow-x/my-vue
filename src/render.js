@@ -141,7 +141,8 @@ function mountComponent(vnode, container, isSvg) {
 
 function mountStatefulComponent(vnode, container, isSvg) {
     const instance = new vnode.tag();
-    instance.$props = getProps(vnode.data);
+    vnode.children = instance;
+    instance.$props = (vnode.data && vnode.data.props) || null;
     instance._update = function() {
         if(instance._mounted) {
             const prevVNode = instance.$vnode;
@@ -159,13 +160,6 @@ function mountStatefulComponent(vnode, container, isSvg) {
     }
 
     instance._update();
-}
-
-function getProps(data) {
-    if(data) {
-        return data;
-    }
-    return null;
 }
 
 function mountFunctionalComponent(vnode, container, isSvg) {
@@ -391,7 +385,12 @@ function patchPortal(prevVNode, nextVNode) {
 }
 
 function patchComponent(prevVNode, nextVNode, container) {
-    
+    if(nextVNode.flags & VNodeFlags.COMPONENT_STATEFUL) {
+        const instance = prevVNode.children;
+        nextVNode.children = prevVNode.children;
+        instance.$props = nextVNode.data && nextVNode.data.props;
+        instance._update();
+    }
 }
 
 export { render };

@@ -2,37 +2,49 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
 </head>
 
 <body>
-	<div id="app"></div>
-	<script src="../dist/umd-dev.js"></script>
-	<script>
-		class ChildComponent {
-			render() {
-				return Vue.h('div', null, this.$props.text);
-			}
-		}
+    <div id="app"></div>
+    <script src="../dist/umd-dev.js"></script>
+    <script>
+        let childComVnode;
+        class ChildComponent {
+            render() {
+                return Vue.h('div', null, this.$props.text);
+            }
+        }
 
-		class ParentComponent {
-			localState = 'one'
+        class ParentComponent {
+            localState = 'one';
 
-			render() {
-				return Vue.h(ChildComponent, {
-					// 父组件向子组件传递的 props
-					text: this.localState
-				})
-			}
-		}
+            mounted() {
+                // 两秒钟后将 localState 的值修改为 'two'
+                setTimeout(() => {
+                    this.localState = 'two'
+                    this._update()
+                }, 2000)
+            }
 
-		// 有状态组件 VNode
-		const compVNode = Vue.h(ParentComponent)
-		Vue.render(compVNode, document.getElementById('app'));
-	</script>
+            render() {
+                childComVnode = Vue.h(ChildComponent, {
+                    // 父组件向子组件传递的 props
+                    props: {
+                        text: this.localState
+                    }
+                });
+                return childComVnode;
+            }
+        }
+
+        // 有状态组件 VNode
+        const compVNode = Vue.h(ParentComponent)
+        Vue.render(compVNode, document.getElementById('app'));
+    </script>
 </body>
 
 </html>
