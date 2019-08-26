@@ -141,9 +141,31 @@ function mountComponent(vnode, container, isSvg) {
 
 function mountStatefulComponent(vnode, container, isSvg) {
     const instance = new vnode.tag();
-    const _vnode = instance.render();
-    mount(_vnode, container, isSvg);
-    vnode.el = _vnode.el;
+    instance.$props = getProps(vnode.data);
+    instance._update = function() {
+        if(instance._mounted) {
+            const prevVNode = instance.$vnode;
+            instance.$vnode = instance.render();
+            const nextVNode = instance.$vnode;
+            patch(prevVNode, nextVNode, prevVNode.el.parentNode);
+            vnode.el = instance.$vnode.el;
+        } else {
+            instance.$vnode = instance.render();
+            mount(instance.$vnode, container, isSvg);
+            vnode.el = instance.$vnode.el;
+            instance._mounted = true;
+            instance.mounted && instance.mounted();
+        }
+    }
+
+    instance._update();
+}
+
+function getProps(data) {
+    if(data) {
+        return data;
+    }
+    return null;
 }
 
 function mountFunctionalComponent(vnode, container, isSvg) {
@@ -165,6 +187,8 @@ function patch(prevVNode, nextVNode, container) {
         patchFragment(prevVNode, nextVNode, container);
     } else if (nextFlags & VNodeFlags.PORTAL) {
         patchPortal(prevVNode, nextVNode, container);
+    } else if(nextFlags & VNodeFlags.COMPONENT) {
+        patchComponent(prevVNode, nextVNode, container);
     }
 }
 
@@ -284,7 +308,6 @@ function patchChildren(prevVNode, nextVNode, container) {
                     container.innerHTML = ''; // 当子节点是portal的时候会有问题
                     break;
                 case ChildFlags.SINGLE_VNODE:
-                    console.info(_prevChildren, _nextChildren);
                     patch(_prevChildren, _nextChildren, container);
                     break;
                 default:
@@ -365,6 +388,10 @@ function patchPortal(prevVNode, nextVNode) {
         }
 
     }
+}
+
+function patchComponent(prevVNode, nextVNode, container) {
+    
 }
 
 export { render };
