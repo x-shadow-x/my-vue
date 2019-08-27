@@ -143,8 +143,8 @@ function mountStatefulComponent(vnode, container, isSvg) {
     const instance = new vnode.tag();
     vnode.children = instance;
     instance.$props = (vnode.data && vnode.data.props) || null;
-    instance._update = function() {
-        if(instance._mounted) {
+    instance._update = function () {
+        if (instance._mounted) {
             const prevVNode = instance.$vnode;
             instance.$vnode = instance.render();
             const nextVNode = instance.$vnode;
@@ -163,9 +163,32 @@ function mountStatefulComponent(vnode, container, isSvg) {
 }
 
 function mountFunctionalComponent(vnode, container, isSvg) {
-    const _vnode = vnode.tag();
-    mount(_vnode, container, isSvg);
-    vnode.el = _vnode.el;
+    vnode.handle = {
+        prev: null,
+        next: vnode,
+        container,
+        update: () => {
+            if (vnode.handle.prev) {
+                const prevVNode = vnode.handle.prev;
+                const nextVnode = vnode.handle.next;
+                const prevChildren = prevVNode.children;
+                const props = nextVnode.data.props;
+                const nextChildren = nextVnode.tag(props);
+                nextVnode.children = nextChildren;
+                patch(prevChildren, nextChildren, vnode.handle.container);
+                console.info(nextChildren);
+                vnode.el = nextChildren.el;
+            } else {
+                const props = vnode.data && vnode.data.props;
+                const _vnode = vnode.tag(props);
+                vnode.children = _vnode;
+                mount(_vnode, container, isSvg);
+                vnode.el = _vnode.el;
+            }
+        }
+    };
+    console.info(vnode);
+    vnode.handle.update();
 }
 
 function patch(prevVNode, nextVNode, container) {
@@ -181,13 +204,18 @@ function patch(prevVNode, nextVNode, container) {
         patchFragment(prevVNode, nextVNode, container);
     } else if (nextFlags & VNodeFlags.PORTAL) {
         patchPortal(prevVNode, nextVNode, container);
-    } else if(nextFlags & VNodeFlags.COMPONENT) {
+    } else if (nextFlags & VNodeFlags.COMPONENT) {
         patchComponent(prevVNode, nextVNode, container);
     }
 }
 
 function replaceVNode(prevVNode, nextVNode, container) {
     container.removeChild(prevVNode.el);
+    if (prevVNode.flags & VNodeFlags.COMPONENT_STATEFUL_NORMAL) {
+        // 类型为有状态组件的 VNode，其 children 属性被用来存储组件实例对象
+        const instance = prevVNode.children;
+        instance.unmounted && instance.unmounted();
+    }
     mount(nextVNode, container);
 }
 
@@ -368,14 +396,14 @@ function patchPortal(prevVNode, nextVNode) {
         const _nextContainer = typeOf(nextVNode.tag, 'string')
             ? document.querySelector(nextVNode.tag)
             : nextVNode.tag;
-        switch(nextVNode.childFlags) {
+        switch (nextVNode.childFlags) {
             case ChildFlags.NO_CHILDREN:
                 break;
             case ChildFlags.SINGLE_VNODE:
                 _nextContainer.appendChild(_nextChildren.el);
                 break;
             default:
-                for(let i = 0, len = _nextChildren.length; i < len; i++) {
+                for (let i = 0, len = _nextChildren.length; i < len; i++) {
                     _nextContainer.appendChild(_nextChildren[i].el);
                 }
                 break;
@@ -385,11 +413,20 @@ function patchPortal(prevVNode, nextVNode) {
 }
 
 function patchComponent(prevVNode, nextVNode, container) {
-    if(nextVNode.flags & VNodeFlags.COMPONENT_STATEFUL) {
+    if (nextVNode.tag !== prevVNode.tag) {
+        replaceVNode(prevVNode, nextVNode, container);
+    } else if (nextVNode.flags & VNodeFlags.COMPONENT_STATEFUL) {
         const instance = prevVNode.children;
         nextVNode.children = prevVNode.children;
         instance.$props = nextVNode.data && nextVNode.data.props;
         instance._update();
+    } else {
+        // 更新函数式组件
+        const handle = prevVNode.handle;
+        handle.prev = prevVNode;
+        handle.next = nextVNode;
+        handle.container = container;
+        handle.update();
     }
 }
 
