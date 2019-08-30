@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="../dist/umd-dev.js"></script>
+    <script>
+        const prevVNode = Vue.h('div', null, [
+			Vue.h('p', { key: 'a' }, '子节点1'),
+			Vue.h('p', { key: 'b' }, '子节点2'),
+			Vue.h('p', { key: 'c' }, '子节点3')
+		]);
+		
+		const nextVNode = Vue.h('div', null, [
+			Vue.h('p', { key: 'd' }, '子节点4'),
+			Vue.h('p', { key: 'a' }, '子节点1'),
+			Vue.h('p', { key: 'b' }, '子节点2')
+		]);
+
+		Vue.render(prevVNode, document.getElementById('app'));
+
+		setTimeout(() => {
+			Vue.render(nextVNode, document.getElementById('app'))
+		}, 2000);
+    </script>
+</body>
+
+</html>

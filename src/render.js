@@ -34,10 +34,10 @@ function render(vnode, container) {
  * @param {*} container 
  * @param {*} isSvg 
  */
-function mount(vnode, container, isSvg) {
+function mount(vnode, container, isSvg, refNode) {
     const { flags } = vnode;
     if (flags & VNodeFlags.ELEMENT) {
-        mountElement(vnode, container, isSvg);
+        mountElement(vnode, container, isSvg, refNode);
     } else if (flags & VNodeFlags.COMPONENT) {
         mountComponent(vnode, container, isSvg);
     } else if (flags & VNodeFlags.TEXT) {
@@ -49,7 +49,7 @@ function mount(vnode, container, isSvg) {
     }
 }
 
-function mountElement(vnode, container, isSvg) {
+function mountElement(vnode, container, isSvg, refNode) {
     // <svg>的子元素标签名不是svg，但又确实是svg标签，所以优先以外部传进来的参数判断是否是svg元素，
     // 当发现当前元素是<svg>时，它的子元素也就一定是svg相关的元素了
     const _isSvg = isSvg || vnode.flags & VNodeFlags.ELEMENT_SVG;
@@ -72,7 +72,8 @@ function mountElement(vnode, container, isSvg) {
             mount(children[i], el, _isSvg);
         }
     }
-    container.appendChild(el);
+
+    refNode ? container.insertBefore(el, refNode) : container.appendChild(el);
     vnode.el = el;
 }
 
@@ -176,7 +177,6 @@ function mountFunctionalComponent(vnode, container, isSvg) {
                 const nextChildren = nextVnode.tag(props);
                 nextVnode.children = nextChildren;
                 patch(prevChildren, nextChildren, vnode.handle.container);
-                console.info(nextChildren);
                 vnode.el = nextChildren.el;
             } else {
                 const props = vnode.data && vnode.data.props;
@@ -187,7 +187,6 @@ function mountFunctionalComponent(vnode, container, isSvg) {
             }
         }
     };
-    console.info(vnode);
     vnode.handle.update();
 }
 
@@ -247,7 +246,7 @@ function patchElement(prevVNode, nextVNode, container) {
         }
     }
 
-    patchChildren(prevVNode, nextVNode, container);
+    patchChildren(prevVNode, nextVNode, el);
 }
 
 function patchText(prevVNode, nextVNode) {
@@ -351,10 +350,36 @@ function patchChildren(prevVNode, nextVNode, container) {
                     mount(_nextChildren, container);
                     break;
                 default:
-                    container.innerHTML = '';
-                    for (let i = 0, len = _nextChildren.length; i < len; i++) {
-                        const child = _nextChildren[i];
-                        mount(child, container);
+                    let lastIndex = 0; // 当在旧节点中存在与新节点key对应的节点时，新节点在旧节点中的最大索引值
+                    for (let i = 0, nextLen = _nextChildren.length; i < nextLen; i++) {
+                        const nextChild = _nextChildren[i];
+                        let isNewNode = true;
+                        for (let j = 0, prevLen = _prevChildren.length; j < prevLen; j++) {
+                            const prevChild = _prevChildren[j];
+                            if (prevChild.key === nextChild.key) {
+                                isNewNode = false;
+                                patch(prevChild, nextChild, container);
+                                if (j < lastIndex) {
+                                    // 当前节点在旧节点列表中的位置靠前，需要移动
+                                    const refNode = _nextChildren[i - 1].el.nextSibling;
+                                    container.insertBefore(nextChild.el, refNode);
+                                } else {
+                                    lastIndex = j;
+                                }
+                                break;
+                            }
+                        }
+                        if(isNewNode) {
+                            const refNode = i === 0 ? _prevChildren[0].el : _nextChildren[i - 1].el.nextSibling;
+                            mount(nextChild, container, false, refNode);
+                        }
+                    }
+                    for(let i = 0, len = _prevChildren.length; i < len; i++) {
+                        const prevChild = _prevChildren[i];
+                        const has = _nextChildren.find(item => item.key === prevChild.key);
+                        if(!has) {
+                            container.removeChild(prevChild.el);
+                        }
                     }
                     break;
             }
@@ -428,6 +453,7 @@ function patchComponent(prevVNode, nextVNode, container) {
         handle.container = container;
         handle.update();
     }
+    nextVNode.el = prevVNode.el;
 }
 
 export { render };
